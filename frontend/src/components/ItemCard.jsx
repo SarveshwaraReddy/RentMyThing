@@ -35,7 +35,7 @@ const ItemCard = ({ item }) => {
         <div className="card-header-info">
           <h3 className="card-title" title={title}>{title}</h3>
           <div className="pricing-tag">
-            <span className="rate">${dailyRate}</span>
+            <span className="rate">₹{Math.round(dailyRate * 90)}</span>
             <span className="unit">/ day</span>
           </div>
         </div>
@@ -66,11 +66,11 @@ const ItemCard = ({ item }) => {
         </p>
 
         <div className="deposit-info">
-          <span>Deposit: <strong>${depositAmount}</strong></span>
+          <span>Deposit: <strong>₹{Math.round(depositAmount * 90)}</strong></span>
         </div>
 
         <div className="card-footer">
-          <div className="owner-summary">
+          <Link to={`/profile?userId=${owner?._id || owner}`} className="owner-summary" style={{ textDecoration: "none", color: "inherit", display: "flex", gap: "0.75rem", alignItems: "center" }}>
             {ownerImage ? (
               <img src={ownerImage} alt={ownerName} className="owner-avatar" />
             ) : (
@@ -79,8 +79,8 @@ const ItemCard = ({ item }) => {
               </div>
             )}
             <div className="owner-details">
-              <span className="owner-name">{ownerName}</span>
-              <div className="owner-rating">
+              <span className="owner-name" style={{ fontWeight: 600 }}>{ownerName}</span>
+              <div className="owner-rating" style={{ display: "flex", alignItems: "center", gap: "0.2rem" }}>
                 <svg
                   className="icon-star"
                   fill="currentColor"
@@ -93,7 +93,7 @@ const ItemCard = ({ item }) => {
                 <span>{ownerRating > 0 ? ownerRating.toFixed(1) : "New"}</span>
               </div>
             </div>
-          </div>
+          </Link>
 
           <Link to={`/items/${_id}`} className="btn-view-details">
             Rent Now

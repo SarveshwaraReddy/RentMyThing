@@ -49,6 +49,14 @@ const rentalSchema = new mongoose.Schema(
       select: false,
     },
     otpExpiresAt: Date,
+    ratedByTenant: {
+      type: Boolean,
+      default: false,
+    },
+    ratedByOwner: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

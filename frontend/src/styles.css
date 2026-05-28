@@ -16,6 +16,7 @@
   --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
   --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-premium: 0 20px 50px rgba(99, 102, 241, 0.07);
+  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
 }
 
 /* Global resets */
@@ -1267,4 +1268,353 @@ a {
   gap: 1.5rem;
   margin-top: 1rem;
 }
+
+/* Phase 11 - Rating & Reviews Styles */
+.star-btn {
+  background: transparent;
+  border: none;
+  font-size: 2.25rem;
+  cursor: pointer;
+  color: #cbd5e1;
+  transition: transform 0.1s ease, color 0.1s ease;
+}
+
+.star-btn.filled {
+  color: var(--primary);
+}
+
+.star-btn:hover {
+  transform: scale(1.25);
+}
+
+/* Item Details Page Styles */
+.item-details-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.back-btn-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.btn-back:hover {
+  color: var(--primary);
+}
+
+.details-header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.details-title-section h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.details-meta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.availability-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.availability-badge.available {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.availability-badge.unavailable {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* Gallery Styles */
+.item-gallery-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+}
+
+.active-image-wrapper {
+  width: 100%;
+  padding-top: 60%; /* 5:3 ratio */
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: #f1f5f9;
+  margin-bottom: 1rem;
+}
+
+.active-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail-strip {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.thumbnail-btn {
+  width: 80px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  background: none;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.thumbnail-btn:hover {
+  transform: translateY(-2px);
+}
+
+.thumbnail-btn.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Info Section Styles */
+.info-section-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+}
+
+.info-section-card h2 {
+  font-size: 1.35rem;
+  font-weight: 750;
+  margin-bottom: 1rem;
+  color: var(--text-main);
+}
+
+.description-text {
+  font-size: 1rem;
+  color: var(--text-main);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.location-address {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+/* Right Column Panels */
+.sticky-column {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Booking Card */
+.booking-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.booking-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: var(--gradient-primary);
+}
+
+.booking-card-price {
+  margin-bottom: 1.5rem;
+}
+
+.booking-card-price .price {
+  font-size: 2rem;
+  font-weight: 850;
+  color: var(--primary);
+}
+
+.booking-card-price .unit {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.booking-dates-form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.cost-breakdown {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cost-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.cost-row.total {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+.btn-book {
+  width: 100%;
+  padding: 0.9rem;
+  font-size: 1rem;
+  border-radius: 14px;
+  margin-top: 1.5rem;
+}
+
+/* Owner Details Card */
+.owner-card-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.owner-card-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.owner-card-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  border: 2px solid #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.owner-card-info h3 {
+  font-size: 1.05rem;
+  font-weight: 750;
+  margin-bottom: 0.15rem;
+}
+
+.owner-card-info p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.owner-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.btn-view-owner {
+  display: block;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 0.5rem;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.btn-view-owner:hover {
+  background: var(--primary);
+  color: white;
+}
+
+
 

@@ -16,6 +16,8 @@ const verifyOTP = (id, otp) => api.post(`/rentals/${id}/verify-otp`, { otp });
 
 const completeRental = (id) => api.post(`/rentals/${id}/complete`);
 
+const rateRental = (id, rating, comment) => api.post(`/rentals/${id}/rate`, { rating, comment });
+
 export default {
   requestRental,
   getUserRentals,
@@ -25,4 +27,5 @@ export default {
   rejectRental,
   verifyOTP,
   completeRental,
+  rateRental,
 };

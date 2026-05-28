@@ -9,7 +9,9 @@ import {
   rejectRental,
 } from "../controllers/rentalController.js";
 import { getChatHistory } from "../controllers/messageController.js";
+import { createReview } from "../controllers/reviewController.js";
 import protect from "../middleware/auth.js";
+import { authLimiter } from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
@@ -33,9 +35,12 @@ router.route("/:id/reject")
   .post(rejectRental);
 
 router.route("/:id/verify-otp")
-  .post(verifyOTP);
+  .post(authLimiter, verifyOTP);
 
 router.route("/:id/complete")
   .post(completeRental);
+
+router.route("/:id/rate")
+  .post(createReview);
 
 export default router;

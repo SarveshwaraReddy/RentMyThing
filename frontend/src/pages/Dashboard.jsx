@@ -19,8 +19,45 @@ const Dashboard = () => {
   // Chat integration states (Phase 10)
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedChatRentalId, setSelectedChatRentalId] = useState(null);
+
+  // Rating states (Phase 11)
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [ratingRentalId, setRatingRentalId] = useState(null);
+  const [ratingValue, setRatingValue] = useState(5);
+  const [ratingComment, setRatingComment] = useState("");
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
   
   const navigate = useNavigate();
+
+  const openRatingModal = (rentalId) => {
+    setRatingRentalId(rentalId);
+    setRatingValue(5);
+    setRatingComment("");
+    setIsRatingModalOpen(true);
+  };
+
+  const closeRatingModal = () => {
+    setIsRatingModalOpen(false);
+    setRatingRentalId(null);
+  };
+
+  const handleRatingSubmit = async (e) => {
+    e.preventDefault();
+    if (!ratingRentalId) return;
+
+    setRatingSubmitting(true);
+    try {
+      await rentalsService.rateRental(ratingRentalId, ratingValue, ratingComment.trim());
+      toast.success("Review submitted! Thank you.");
+      closeRatingModal();
+      loadDashboardData();
+    } catch (error) {
+      console.error("Submit rating error:", error);
+      toast.error(error?.message || "Failed to submit review.");
+    } finally {
+      setRatingSubmitting(false);
+    }
+  };
 
   // Redirect if not logged in
   useEffect(() => {
@@ -289,10 +326,10 @@ const Dashboard = () => {
 
                           <div style={{ textAlign: "right", minWidth: "150px" }}>
                             <div style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--primary)" }}>
-                              ${rental.totalCost}
+                              ₹{Math.round(rental.totalCost * 90)}
                             </div>
                             <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                              Deposit: ${rental.securityDeposit}
+                              Deposit: ₹{Math.round(rental.securityDeposit * 90)}
                             </span>
                           </div>
 
@@ -418,7 +455,7 @@ const Dashboard = () => {
                                 Waiting for Owner
                               </span>
                               <div style={{ fontSize: "0.9rem", fontWeight: 700, marginTop: "0.15rem" }}>
-                                ${rental.totalCost}
+                                ₹{Math.round(rental.totalCost * 90)}
                               </div>
                             </div>
                           </div>
@@ -471,6 +508,20 @@ const Dashboard = () => {
                               >
                                 View Chat
                               </button>
+                            )}
+                            {rental.status === "Completed" && !rental.ratedByTenant && (
+                              <button
+                                onClick={() => openRatingModal(rental._id)}
+                                className="btn btn-primary"
+                                style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem", borderRadius: "10px", boxShadow: "none" }}
+                              >
+                                ⭐ Rate Lender
+                              </button>
+                            )}
+                            {rental.status === "Completed" && rental.ratedByTenant && (
+                              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                                Rated
+                              </span>
                             )}
                             <span
                               style={{
@@ -570,10 +621,10 @@ const Dashboard = () => {
 
                       <div style={{ textAlign: "right", minWidth: "120px" }}>
                         <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--primary)" }}>
-                          ${rental.totalCost}
+                          ₹{Math.round(rental.totalCost * 90)}
                         </div>
                         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                          Earnings (Deposit: ${rental.securityDeposit})
+                          Earnings (Deposit: ₹{Math.round(rental.securityDeposit * 90)})
                         </span>
                       </div>
 
@@ -714,7 +765,7 @@ const Dashboard = () => {
                           {item.title}
                         </h3>
                         <p style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--primary)", marginTop: "0.25rem" }}>
-                          ${item.dailyRate} <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>/ day</span>
+                          ₹{Math.round(item.dailyRate * 90)} <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500 }}>/ day</span>
                         </p>
                         
                         <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
@@ -739,6 +790,83 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Past Loans History for Lender */}
+            {completedRentals.length > 0 && (
+              <div className="dashboard-section">
+                <h2 className="section-title" style={{ marginBottom: "1.25rem" }}>Past Loans History</h2>
+                <div style={{ display: "grid", gap: "0.75rem" }}>
+                  {completedRentals.map((rental) => (
+                    <div
+                      key={rental._id}
+                      style={{
+                        background: "var(--bg-card)",
+                        border: "1px solid var(--border-color)",
+                        borderRadius: "12px",
+                        padding: "1rem 1.25rem",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        opacity: 0.8,
+                        flexWrap: "wrap",
+                        gap: "1rem",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                        <img
+                          src={rental.item?.images?.[0] || "https://via.placeholder.com/150"}
+                          alt={rental.item?.title}
+                          style={{ width: "40px", height: "40px", borderRadius: "6px", objectFit: "cover" }}
+                        />
+                        <div>
+                          <h3 style={{ fontSize: "0.9rem", fontWeight: 700 }}>{rental.item?.title}</h3>
+                          <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                            Completed on: {new Date(rental.updatedAt).toLocaleDateString()} | Renter: {rental.tenant?.name || "Hidden"}
+                          </p>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                        {rental.status === "Completed" && (
+                          <button
+                            onClick={() => openChat(rental._id)}
+                            className="btn btn-secondary btn-chat"
+                            style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem", borderRadius: "10px" }}
+                          >
+                            View Chat
+                          </button>
+                        )}
+                        {rental.status === "Completed" && !rental.ratedByOwner && (
+                          <button
+                            onClick={() => openRatingModal(rental._id)}
+                            className="btn btn-primary"
+                            style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem", borderRadius: "10px", boxShadow: "none" }}
+                          >
+                            ⭐ Rate Borrower
+                          </button>
+                        )}
+                        {rental.status === "Completed" && rental.ratedByOwner && (
+                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                            Rated
+                          </span>
+                        )}
+                        <span
+                          style={{
+                            fontSize: "0.75rem",
+                            padding: "0.15rem 0.5rem",
+                            borderRadius: "10px",
+                            background: rental.status === "Completed" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                            color: rental.status === "Completed" ? "#059669" : "#dc2626",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {rental.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -752,6 +880,149 @@ const Dashboard = () => {
           setSelectedChatRentalId(null);
         }}
       />
+
+      {/* Interactive Review & Rating Modal (Phase 11) */}
+      <AnimatePresence>
+        {isRatingModalOpen && (
+          <>
+            {/* Modal backdrop */}
+            <motion.div
+              className="chat-backdrop"
+              style={{ zIndex: 1000, opacity: 0.6 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              exit={{ opacity: 0 }}
+              onClick={closeRatingModal}
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              className="rating-modal-box"
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-color)",
+                boxShadow: "var(--shadow-lg)",
+                borderRadius: "20px",
+                width: "90%",
+                maxWidth: "480px",
+                padding: "2rem",
+                zIndex: 1001,
+              }}
+              initial={{ opacity: 0, scale: 0.95, y: "-40%", x: "-50%" }}
+              animate={{ opacity: 1, scale: 1, y: "-50%", x: "-50%" }}
+              exit={{ opacity: 0, scale: 0.95, y: "-40%", x: "-50%" }}
+              transition={{ type: "spring", duration: 0.35 }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  borderBottom: "1px solid var(--border-color)",
+                  paddingBottom: "1rem",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800 }}>Submit Transaction Review</h3>
+                <button
+                  onClick={closeRatingModal}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    fontSize: "1.5rem",
+                    cursor: "pointer",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  &times;
+                </button>
+              </div>
+
+              <form onSubmit={handleRatingSubmit}>
+                <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+                  <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>
+                    How would you rate your peer interaction experience?
+                  </p>
+                  
+                  {/* Star Rating buttons */}
+                  <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", margin: "0.75rem 0" }}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRatingValue(star)}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          fontSize: "2.25rem",
+                          cursor: "pointer",
+                          color: star <= ratingValue ? "var(--primary)" : "#cbd5e1",
+                          transition: "transform 0.1s ease",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.25)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+
+                  <span style={{ fontWeight: 800, fontSize: "1.1rem", color: "var(--primary)" }}>
+                    {ratingValue === 1 && "Poor 😞"}
+                    {ratingValue === 2 && "Fair 😐"}
+                    {ratingValue === 3 && "Good 🙂"}
+                    {ratingValue === 4 && "Very Good! 😄"}
+                    {ratingValue === 5 && "Outstanding! 🌟"}
+                  </span>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: "1.5rem" }}>
+                  <label style={{ fontSize: "0.85rem", fontWeight: 600, display: "block", marginBottom: "0.5rem" }}>
+                    Feedback Comments
+                  </label>
+                  <textarea
+                    placeholder="Write a brief comment about user responsiveness, item condition, or handover punctuality..."
+                    className="form-control"
+                    rows="4"
+                    maxLength="500"
+                    value={ratingComment}
+                    onChange={(e) => setRatingComment(e.target.value)}
+                    disabled={ratingSubmitting}
+                    style={{ resize: "none" }}
+                  />
+                  <div style={{ textAlign: "right", fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
+                    {ratingComment.length}/500 characters
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "1rem" }}>
+                  <button
+                    type="button"
+                    onClick={closeRatingModal}
+                    className="btn btn-secondary"
+                    style={{ flex: 1 }}
+                    disabled={ratingSubmitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    style={{ flex: 1 }}
+                    disabled={ratingSubmitting}
+                  >
+                    {ratingSubmitting ? "Submitting..." : "Submit Rating"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.main>
   );
 };

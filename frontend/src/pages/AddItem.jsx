@@ -121,8 +121,8 @@ const AddItem = () => {
       formData.append("title", title);
       formData.append("description", description);
       formData.append("category", category);
-      formData.append("dailyRate", dailyRate);
-      formData.append("depositAmount", depositAmount);
+      formData.append("dailyRate", (parseFloat(dailyRate) / 90).toFixed(2));
+      formData.append("depositAmount", (parseFloat(depositAmount) / 90).toFixed(2));
       formData.append("formattedAddress", formattedAddress);
       formData.append("latitude", latitude);
       formData.append("longitude", longitude);
@@ -205,7 +205,7 @@ const AddItem = () => {
 
               <div className="pricing-group">
                 <label className="form-group">
-                  <span>Daily Rate ($)</span>
+                  <span>Daily Rate (₹)</span>
                   <input
                     type="number"
                     step="0.01"
@@ -218,7 +218,7 @@ const AddItem = () => {
                 </label>
 
                 <label className="form-group">
-                  <span>Security Deposit ($)</span>
+                  <span>Security Deposit (₹)</span>
                   <input
                     type="number"
                     step="0.01"
