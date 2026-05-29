@@ -98,8 +98,12 @@ const AddItem = () => {
     if (!category) return "Please select a category";
     if (!dailyRate || parseFloat(dailyRate) <= 0) return "Daily rate must be greater than 0";
     if (!depositAmount || parseFloat(depositAmount) < 0) return "Deposit amount cannot be negative";
-    if (!formattedAddress.trim()) return "A physical location address is required";
-    if (!latitude || !longitude) return "Please click 'Detect Location' or input GPS coordinates";
+    
+    // Either address OR GPS coordinates required (not both)
+    const hasAddress = formattedAddress.trim();
+    const hasGPS = latitude && longitude;
+    if (!hasAddress && !hasGPS) return "Provide either a campus address or GPS coordinates";
+    
     if (selectedFiles.length === 0) return "Please upload at least one image of your item";
     return null;
   };
