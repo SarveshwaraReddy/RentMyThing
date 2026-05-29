@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
+import validator from "validator";
 import Rental from "../models/Rental.js";
 import Message from "../models/Message.js";
 
@@ -102,11 +103,12 @@ export const initSocket = (httpServer) => {
           return;
         }
 
-        // Save Message to DB
+        // Save Message to DB (Sanitized against XSS attacks)
+        const sanitizedContent = validator.escape(content.trim());
         const message = await Message.create({
           rentalId,
           sender: socket.user.id,
-          content: content.trim(),
+          content: sanitizedContent,
         });
 
         // Populate sender info for the client view

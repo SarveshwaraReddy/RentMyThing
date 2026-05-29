@@ -12,6 +12,7 @@ import { getChatHistory } from "../controllers/messageController.js";
 import { createReview } from "../controllers/reviewController.js";
 import protect from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
+import { validateRental, validateOTP, validateReview } from "../validators/inputValidator.js";
 
 const router = express.Router();
 
@@ -19,7 +20,7 @@ const router = express.Router();
 router.use(protect);
 
 router.route("/")
-  .post(requestRental)
+  .post(validateRental, requestRental)
   .get(getUserRentals);
 
 router.route("/:id")
@@ -35,12 +36,12 @@ router.route("/:id/reject")
   .post(rejectRental);
 
 router.route("/:id/verify-otp")
-  .post(authLimiter, verifyOTP);
+  .post(authLimiter, validateOTP, verifyOTP);
 
 router.route("/:id/complete")
   .post(completeRental);
 
 router.route("/:id/rate")
-  .post(createReview);
+  .post(validateReview, createReview);
 
 export default router;
