@@ -109,6 +109,33 @@ export const approveRental = async (req, res, next) => {
       return res.status(400).json({ message: `Cannot approve a rental that is in '${rental.status}' status` });
     }
 
+    // Check for other approved or active rentals that overlap
+    const overlapping = await Rental.findOne({
+      item: rental.item,
+      status: { $in: ["Approved", "Active"] },
+      _id: { $ne: rental._id },
+      startDate: { $lte: rental.endDate },
+      endDate: { $gte: rental.startDate },
+    });
+
+    if (overlapping) {
+      return res.status(409).json({
+        message: "Cannot approve this request. The item has already been booked by another user for overlapping dates."
+      });
+    }
+
+    // Auto-reject other requested bookings that overlap
+    await Rental.updateMany(
+      {
+        item: rental.item,
+        status: "Requested",
+        _id: { $ne: rental._id },
+        startDate: { $lte: rental.endDate },
+        endDate: { $gte: rental.startDate },
+      },
+      { $set: { status: "Rejected" } }
+    );
+
     // Generate secure 6-digit OTP
     const rawOTP = crypto.randomInt(100000, 999999).toString();
     const salt = await bcrypt.genSalt(10);
@@ -119,6 +146,7 @@ export const approveRental = async (req, res, next) => {
     rental.handshakeOTP = hashedOTP;
     rental.tempRawOTP = rawOTP;
     rental.otpExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours expiry
+    rental.otpAttempts = 0; // reset attempts
 
     await rental.save();
 
@@ -172,7 +200,23 @@ export const verifyOTP = async (req, res, next) => {
     // OTP match
     const isMatch = await bcrypt.compare(otp.toString(), rental.handshakeOTP);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid OTP handshake code. Try again." });
+      rental.otpAttempts = (rental.otpAttempts || 0) + 1;
+      if (rental.otpAttempts >= 5) {
+        // Reset state back to Requested so OTP can be regenerated
+        rental.status = "Requested";
+        rental.handshakeOTP = undefined;
+        rental.tempRawOTP = undefined;
+        rental.otpExpiresAt = undefined;
+        rental.otpAttempts = 0;
+        await rental.save();
+        return res.status(400).json({
+          message: "Too many failed OTP attempts. Handshake reset. Please ask the owner to regenerate OTP.",
+        });
+      }
+      await rental.save();
+      return res.status(400).json({
+        message: `Invalid OTP handshake code. Attempts remaining: ${5 - rental.otpAttempts}`,
+      });
     }
 
     // Success: Handover complete. Transition Active & purge temp OTP credentials
@@ -180,6 +224,7 @@ export const verifyOTP = async (req, res, next) => {
     rental.handshakeOTP = undefined;
     rental.tempRawOTP = undefined;
     rental.otpExpiresAt = undefined;
+    rental.otpAttempts = 0;
 
     await rental.save();
 
@@ -243,16 +288,26 @@ export const getUserRentals = async (req, res, next) => {
       query.$or = [{ owner: req.user.id }, { tenant: req.user.id }];
     }
 
-    const rentals = await Rental.find(query)
+    let rentals = await Rental.find(query)
+      .select("+tempRawOTP")
       .populate("item")
       .populate("owner", "name rating profileImage email")
       .populate("tenant", "name rating profileImage email")
       .sort({ createdAt: -1 });
 
+    // Clean/sanitize raw OTP to ensure only the owner can see it
+    const sanitizedRentals = rentals.map((rental) => {
+      const rentalObj = rental.toObject();
+      if (rentalObj.owner && rentalObj.owner._id.toString() !== req.user.id.toString()) {
+        delete rentalObj.tempRawOTP;
+      }
+      return rentalObj;
+    });
+
     res.status(200).json({
       success: true,
-      count: rentals.length,
-      data: rentals,
+      count: sanitizedRentals.length,
+      data: sanitizedRentals,
     });
   } catch (error) {
     next(error);

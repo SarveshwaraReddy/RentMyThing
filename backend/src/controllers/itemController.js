@@ -1,4 +1,5 @@
 import Item from "../models/Item.js";
+import Rental from "../models/Rental.js";
 
 // @desc    Create new item listing
 // @route   POST /api/items
@@ -68,32 +69,41 @@ export const getItems = async (req, res, next) => {
     // Create base query
     const query = { isAvailable: true };
 
+    // String casting to prevent NoSQL query operator injection
+    const searchStr = typeof search === "string" ? search.trim() : "";
+    const categoryStr = typeof category === "string" ? category.trim() : "";
+    const ownerStr = typeof owner === "string" ? owner.trim() : "";
+
     // Search query (matches title or description)
-    if (search) {
+    if (searchStr) {
       query.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
+        { title: { $regex: searchStr, $options: "i" } },
+        { description: { $regex: searchStr, $options: "i" } },
       ];
     }
 
     // Category filter
-    if (category) {
-      query.category = category;
+    if (categoryStr) {
+      query.category = categoryStr;
     }
 
     // Owner filter (e.g. view specific user listings)
-    if (owner) {
-      query.owner = owner;
+    if (ownerStr) {
+      query.owner = ownerStr;
     }
 
-    // Geospatial search (Phase 7 support built-in!)
-    if (lat && lng) {
+    // Geospatial search - Validate coordinates to avoid crash on invalid inputs
+    const parsedLat = parseFloat(lat);
+    const parsedLng = parseFloat(lng);
+    const isGeoSearch = !isNaN(parsedLat) && !isNaN(parsedLng);
+
+    if (isGeoSearch) {
       const distanceInMeters = parseInt(maxDistance, 10) || 10000; // Defaults to 10km
       query.location = {
         $near: {
           $geometry: {
             type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
+            coordinates: [parsedLng, parsedLat],
           },
           $maxDistance: distanceInMeters,
         },
@@ -102,7 +112,7 @@ export const getItems = async (req, res, next) => {
 
     // Fetch items
     let items;
-    if (lat && lng) {
+    if (isGeoSearch) {
       // Near query already sorts by distance automatically
       items = await Item.find(query).populate("owner", "name rating profileImage");
     } else {
@@ -230,6 +240,24 @@ export const deleteItem = async (req, res, next) => {
     if (item.owner.toString() !== req.user.id.toString()) {
       return res.status(403).json({ message: "User is not authorized to delete this listing" });
     }
+
+    // Check if there are active or approved rentals for this item
+    const activeRentalsCount = await Rental.countDocuments({
+      item: req.params.id,
+      status: { $in: ["Approved", "Active"] }
+    });
+
+    if (activeRentalsCount > 0) {
+      return res.status(400).json({
+        message: "Cannot delete this listing because it currently has active or approved rental contracts."
+      });
+    }
+
+    // Auto-reject any requested rentals for this item
+    await Rental.updateMany(
+      { item: req.params.id, status: "Requested" },
+      { $set: { status: "Rejected" } }
+    );
 
     await item.deleteOne();
 

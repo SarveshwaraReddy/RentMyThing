@@ -70,6 +70,7 @@ const itemSchema = new mongoose.Schema(
 );
 
 itemSchema.index({ location: "2dsphere" });
+itemSchema.index({ owner: 1 });
 
 const Item = mongoose.model("Item", itemSchema);
 export default Item;

@@ -49,6 +49,10 @@ const rentalSchema = new mongoose.Schema(
       select: false,
     },
     otpExpiresAt: Date,
+    otpAttempts: {
+      type: Number,
+      default: 0,
+    },
     ratedByTenant: {
       type: Boolean,
       default: false,
@@ -62,6 +66,10 @@ const rentalSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+rentalSchema.index({ owner: 1 });
+rentalSchema.index({ tenant: 1 });
+rentalSchema.index({ item: 1 });
 
 const Rental = mongoose.model("Rental", rentalSchema);
 export default Rental;

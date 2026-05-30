@@ -7,6 +7,7 @@ import AddItem from "../pages/AddItem.jsx";
 import ItemDetails from "../pages/ItemDetails.jsx";
 import Dashboard from "../pages/Dashboard.jsx";
 import Profile from "../pages/Profile.jsx";
+import ProtectedRoute from "../components/ProtectedRoute.jsx";
 
 const AppRoutes = () => (
   <Routes>
@@ -14,10 +15,12 @@ const AppRoutes = () => (
     <Route path="/login" element={<Login />} />
     <Route path="/register" element={<Register />} />
     <Route path="/marketplace" element={<Marketplace />} />
-    <Route path="/items/new" element={<AddItem />} />
     <Route path="/items/:id" element={<ItemDetails />} />
-    <Route path="/dashboard" element={<Dashboard />} />
-    <Route path="/profile" element={<Profile />} />
+    
+    {/* Private Routes */}
+    <Route path="/items/new" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
+    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
   </Routes>
 );
 

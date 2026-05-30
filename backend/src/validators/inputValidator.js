@@ -112,67 +112,76 @@ export const validateItem = (req, res, next) => {
   } = req.body;
 
   const errors = {};
+  const isUpdate = req.method === "PUT";
 
-  // Require title
-  if (!title || typeof title !== "string") {
-    errors.title = "Title is required";
-  } else {
-    title = title.trim();
-    if (!validator.isLength(title, { min: 3, max: 100 })) {
-      errors.title = "Title must be between 3 and 100 characters";
-    }
-    req.body.title = sanitizeInputString(title);
-  }
-
-  // Require description
-  if (!description || typeof description !== "string") {
-    errors.description = "Description is required";
-  } else {
-    description = description.trim();
-    if (!validator.isLength(description, { min: 10, max: 1000 })) {
-      errors.description = "Description must be between 10 and 1000 characters";
-    }
-    req.body.description = sanitizeInputString(description);
-  }
-
-  // Require category
-  if (!category || typeof category !== "string") {
-    errors.category = "Category is required";
-  } else {
-    category = category.trim();
-    if (!CATEGORIES.includes(category)) {
-      errors.category = `Category must be one of: ${CATEGORIES.join(", ")}`;
-    }
-    req.body.category = category;
-  }
-
-  // Require rates (check numeric values)
-  if (dailyRate === undefined || dailyRate === null || dailyRate === "") {
-    errors.dailyRate = "Daily rate is required";
-  } else {
-    const rateStr = String(dailyRate).trim();
-    if (!validator.isFloat(rateStr, { min: 0 })) {
-      errors.dailyRate = "Daily rate must be a non-negative number";
+  // Validate title
+  if (!isUpdate || title !== undefined) {
+    if (!title || typeof title !== "string") {
+      errors.title = "Title is required";
     } else {
-      req.body.dailyRate = parseFloat(rateStr);
+      title = title.trim();
+      if (!validator.isLength(title, { min: 3, max: 100 })) {
+        errors.title = "Title must be between 3 and 100 characters";
+      }
+      req.body.title = sanitizeInputString(title);
     }
   }
 
-  if (depositAmount === undefined || depositAmount === null || depositAmount === "") {
-    errors.depositAmount = "Security deposit amount is required";
-  } else {
-    const depStr = String(depositAmount).trim();
-    if (!validator.isFloat(depStr, { min: 0 })) {
-      errors.depositAmount = "Security deposit must be a non-negative number";
+  // Validate description
+  if (!isUpdate || description !== undefined) {
+    if (!description || typeof description !== "string") {
+      errors.description = "Description is required";
     } else {
-      req.body.depositAmount = parseFloat(depStr);
+      description = description.trim();
+      if (!validator.isLength(description, { min: 10, max: 1000 })) {
+        errors.description = "Description must be between 10 and 1000 characters";
+      }
+      req.body.description = sanitizeInputString(description);
+    }
+  }
+
+  // Validate category
+  if (!isUpdate || category !== undefined) {
+    if (!category || typeof category !== "string") {
+      errors.category = "Category is required";
+    } else {
+      category = category.trim();
+      if (!CATEGORIES.includes(category)) {
+        errors.category = `Category must be one of: ${CATEGORIES.join(", ")}`;
+      }
+      req.body.category = category;
+    }
+  }
+
+  // Validate dailyRate
+  if (!isUpdate || dailyRate !== undefined) {
+    if (dailyRate === undefined || dailyRate === null || dailyRate === "") {
+      errors.dailyRate = "Daily rate is required";
+    } else {
+      const rateStr = String(dailyRate).trim();
+      if (!validator.isFloat(rateStr, { gt: 0 })) {
+        errors.dailyRate = "Daily rate must be a positive number";
+      } else {
+        req.body.dailyRate = parseFloat(rateStr);
+      }
+    }
+  }
+
+  // Validate depositAmount
+  if (!isUpdate || depositAmount !== undefined) {
+    if (depositAmount === undefined || depositAmount === null || depositAmount === "") {
+      errors.depositAmount = "Security deposit amount is required";
+    } else {
+      const depStr = String(depositAmount).trim();
+      if (!validator.isFloat(depStr, { min: 0 })) {
+        errors.depositAmount = "Security deposit must be a non-negative number";
+      } else {
+        req.body.depositAmount = parseFloat(depStr);
+      }
     }
   }
 
   // Location fields are required on creation
-  // For updates, they may be partial but let's validate if present
-  const isUpdate = req.method === "PUT";
-
   if (latitude !== undefined && latitude !== null && latitude !== "") {
     const latStr = String(latitude).trim();
     if (!validator.isFloat(latStr, { min: -90, max: 90 })) {

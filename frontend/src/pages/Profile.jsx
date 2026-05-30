@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext.jsx";
 import usersService from "../services/users.js";
@@ -22,6 +23,16 @@ const Profile = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Profile Edit states
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editInstitution, setEditInstitution] = useState("");
+  const [editFile, setEditFile] = useState(null);
+  const [editPreview, setEditPreview] = useState("");
+  const [updating, setUpdating] = useState(false);
+  
+  const { setUser: setAuthUser } = useAuth();
+
   const fetchProfileAndReviews = async () => {
     if (!targetUserId) return;
     setLoading(true);
@@ -36,11 +47,49 @@ const Profile = () => {
       setProfileData(profileRes.data.data);
       setReviews(reviewsRes.data.data);
       setItems(itemsRes.data.data);
+      
+      // Initialize edit fields
+      setEditName(profileRes.data.data.name || "");
+      setEditInstitution(profileRes.data.data.institution || "");
+      setEditPreview(profileRes.data.data.profileImage || "");
     } catch (error) {
       console.error("Failed to load profile details:", error);
       toast.error("Failed to load profile data.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editName.trim() || !editInstitution.trim()) {
+      toast.error("Name and institution are required.");
+      return;
+    }
+
+    setUpdating(true);
+    const updateToastId = toast.loading("Updating profile...");
+    try {
+      const formData = new FormData();
+      formData.append("name", editName.trim());
+      formData.append("institution", editInstitution.trim());
+      if (editFile) {
+        formData.append("profileImage", editFile);
+      }
+
+      const res = await usersService.updateProfile(formData);
+      const updatedUser = res.data.data;
+      
+      setProfileData(updatedUser);
+      setAuthUser(updatedUser);
+      setIsEditModalOpen(false);
+      setEditFile(null);
+      toast.success("Profile updated successfully!", { id: updateToastId });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      toast.error(error.response?.data?.message || "Failed to update profile.", { id: updateToastId });
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -103,22 +152,37 @@ const Profile = () => {
             boxShadow: "var(--shadow-md)",
           }}
         >
-          <div
-            className="profile-avatar-giant"
-            style={{
-              width: "100px",
-              height: "100px",
-              borderRadius: "50%",
-              background: "var(--gradient-primary)",
-              color: "#ffffff",
-              display: "grid",
-              placeItems: "center",
-              fontSize: "3rem",
-              fontWeight: 800,
-            }}
-          >
-            {initial}
-          </div>
+          {profileData.profileImage ? (
+            <img
+              src={profileData.profileImage}
+              alt={name}
+              style={{
+                width: "100px",
+                height: "100px",
+                borderRadius: "50%",
+                objectFit: "cover",
+                boxShadow: "var(--shadow-sm)",
+                border: "2px solid #ffffff",
+              }}
+            />
+          ) : (
+            <div
+              className="profile-avatar-giant"
+              style={{
+                width: "100px",
+                height: "100px",
+                borderRadius: "50%",
+                background: "var(--gradient-primary)",
+                color: "#ffffff",
+                display: "grid",
+                placeItems: "center",
+                fontSize: "3rem",
+                fontWeight: 800,
+              }}
+            >
+              {initial}
+            </div>
+          )}
           
           <div style={{ flex: 1, minWidth: "250px" }}>
             <h1 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "0.25rem" }}>{name}</h1>
@@ -126,13 +190,31 @@ const Profile = () => {
               🏫 {institution || "Campus Member"}
             </p>
             {isOwnProfile && (
-              <p style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
-                📧 {email} <span style={{ fontSize: "0.75rem", padding: "0.15rem 0.5rem", borderRadius: "12px", background: "#f1f5f9", marginLeft: "0.5rem", fontWeight: 650 }}>Private</span>
+              <>
+                <p style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
+                  📧 {email} <span style={{ fontSize: "0.75rem", padding: "0.15rem 0.5rem", borderRadius: "12px", background: "#f1f5f9", marginLeft: "0.5rem", fontWeight: 650 }}>Private</span>
+                </p>
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="btn btn-secondary"
+                  style={{
+                    marginTop: "0.75rem",
+                    padding: "0.4rem 1rem",
+                    fontSize: "0.85rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.3rem",
+                  }}
+                >
+                  ✏️ Edit Profile
+                </button>
+              </>
+            )}
+            {!isOwnProfile && (
+              <p style={{ fontSize: "0.825rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
+                Member since: {formattedDate}
               </p>
             )}
-            <p style={{ fontSize: "0.825rem", color: "var(--text-muted)", marginTop: "0.5rem" }}>
-              Member since: {formattedDate}
-            </p>
           </div>
 
           {/* Rating Summary Stats */}
@@ -356,6 +438,140 @@ const Profile = () => {
         </div>
 
       </div>
+
+      {/* Edit Profile Modal */}
+      <AnimatePresence>
+        {isEditModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                background: "rgba(0, 0, 0, 0.4)",
+                zIndex: 1000,
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setEditFile(null);
+                setEditPreview(profileData.profileImage || "");
+              }}
+            />
+
+            {/* Modal Body */}
+            <motion.div
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "min(450px, 90%)",
+                background: "var(--bg-card)",
+                borderRadius: "24px",
+                padding: "2.5rem 2rem",
+                boxShadow: "var(--shadow-lg)",
+                zIndex: 1001,
+              }}
+              initial={{ opacity: 0, scale: 0.9, y: "-40%", x: "-50%" }}
+              animate={{ opacity: 1, scale: 1, y: "-50%", x: "-50%" }}
+              exit={{ opacity: 0, scale: 0.9, y: "-40%", x: "-50%" }}
+            >
+              <h2 style={{ fontSize: "1.5rem", fontWeight: 800, marginBottom: "1.5rem" }}>Edit Profile</h2>
+              <form onSubmit={handleEditSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
+                  {editPreview ? (
+                    <img
+                      src={editPreview}
+                      alt="Preview"
+                      style={{ width: "90px", height: "90px", borderRadius: "50%", objectFit: "cover", border: "2px solid var(--primary-light)" }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "90px",
+                        height: "90px",
+                        borderRadius: "50%",
+                        background: "var(--primary-light)",
+                        color: "var(--primary)",
+                        display: "grid",
+                        placeItems: "center",
+                        fontSize: "2.5rem",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {editName.charAt(0).toUpperCase() || "U"}
+                    </div>
+                  )}
+                  <label className="btn btn-secondary" style={{ padding: "0.35rem 0.85rem", fontSize: "0.75rem", cursor: "pointer", display: "inline-flex", gap: "0.25rem" }}>
+                    📷 Change Photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setEditFile(file);
+                          setEditPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+
+                <label className="form-group">
+                  <span>Name</span>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="form-control"
+                    required
+                    disabled={updating}
+                  />
+                </label>
+
+                <label className="form-group">
+                  <span>Institution</span>
+                  <input
+                    type="text"
+                    value={editInstitution}
+                    onChange={(e) => setEditInstitution(e.target.value)}
+                    className="form-control"
+                    required
+                    disabled={updating}
+                  />
+                </label>
+
+                <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditModalOpen(false);
+                      setEditFile(null);
+                      setEditPreview(profileData.profileImage || "");
+                    }}
+                    className="btn btn-secondary"
+                    style={{ flex: 1 }}
+                    disabled={updating}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={updating}>
+                    {updating ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.main>
   );
 };

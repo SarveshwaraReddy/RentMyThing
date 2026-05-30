@@ -23,7 +23,7 @@ const sendTokenResponse = (res, token) => {
   const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 1000 * 60 * 60 * 24 * 7,
   };
 
@@ -87,7 +87,7 @@ export const logoutUser = (req, res) => {
     httpOnly: true,
     expires: new Date(0),
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
 
   res.status(200).json({ success: true, message: "Logged out successfully" });
@@ -114,6 +114,51 @@ export const getUserProfileById = async (req, res, next) => {
     }
 
     res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUserProfile = async (req, res, next) => {
+  try {
+    const { name, institution } = req.body;
+    const updateFields = {};
+
+    if (name !== undefined) {
+      const trimmedName = name.trim();
+      if (!trimmedName || trimmedName.length < 2 || trimmedName.length > 50) {
+        return res.status(400).json({ message: "Name must be between 2 and 50 characters" });
+      }
+      updateFields.name = trimmedName;
+    }
+
+    if (institution !== undefined) {
+      const trimmedInst = institution.trim();
+      if (!trimmedInst) {
+        return res.status(400).json({ message: "Institution is required" });
+      }
+      updateFields.institution = trimmedInst;
+    }
+
+    if (req.imageUrls && req.imageUrls.length > 0) {
+      updateFields.profileImage = req.imageUrls[0];
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: user,
+    });
   } catch (error) {
     next(error);
   }

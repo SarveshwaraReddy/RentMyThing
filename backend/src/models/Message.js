@@ -27,5 +27,7 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
+messageSchema.index({ rentalId: 1 });
+
 const Message = mongoose.model("Message", messageSchema);
 export default Message;

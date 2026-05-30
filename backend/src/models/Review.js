@@ -44,6 +44,8 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
+reviewSchema.index({ reviewee: 1 });
+
 // Prevent duplicate reviews: One reviewer can submit only one review per rental transaction
 reviewSchema.index({ rental: 1, reviewer: 1 }, { unique: true });
 

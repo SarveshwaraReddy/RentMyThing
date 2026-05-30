@@ -1711,5 +1711,128 @@ a {
   color: white;
 }
 
+/* Responsive Design Media Queries */
+
+/* Tablet Viewports (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .sticky-column {
+    position: static;
+  }
+  .profile-layout-grid {
+    gap: 1.5rem;
+  }
+}
+
+/* Mobile Viewports (max-width: 768px) */
+@media (max-width: 768px) {
+  .page {
+    padding: 1.5rem 1rem;
+  }
+  .navbar-container {
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .navbar-links {
+    justify-content: center;
+    order: 2;
+  }
+  .navbar-user-actions {
+    justify-content: center;
+    order: 3;
+  }
+  .navbar-logo {
+    justify-content: center;
+    order: 1;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .span-2 {
+    grid-column: span 1;
+  }
+  .pricing-group {
+    grid-template-columns: 1fr;
+    grid-column: span 1;
+  }
+  .profile-content-split {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .chat-drawer {
+    width: 100% !important;
+  }
+  .marketplace-hero {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 1rem;
+  }
+  .btn-add-listing {
+    width: 100%;
+  }
+  .search-bar-form {
+    flex-direction: column;
+  }
+  .btn-search {
+    width: 100%;
+    padding: 0.75rem;
+  }
+  .discovery-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  .location-filter-control {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .distance-slider-wrapper {
+    justify-content: space-between;
+  }
+  .sort-control label {
+    justify-content: space-between;
+    width: 100%;
+  }
+  .sort-select {
+    width: 100%;
+  }
+}
+
+/* Small Mobiles (max-width: 425px) */
+@media (max-width: 425px) {
+  .hero-text h1 {
+    font-size: 1.85rem;
+  }
+  .auth-card {
+    padding: 1.5rem;
+  }
+  .add-item-card {
+    padding: 1.5rem;
+  }
+  .profile-user-card {
+    padding: 1.25rem;
+    flex-direction: column;
+    text-align: center;
+  }
+  .gps-coordinates {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .form-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .form-actions button {
+    width: 100%;
+  }
+}
+
+
 
 
