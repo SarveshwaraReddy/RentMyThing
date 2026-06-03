@@ -1833,11 +1833,7 @@ a {
   }
 }
 
-/* Custom Cursor Styles */
-html.custom-cursor-active,
-html.custom-cursor-active * {
-  cursor: none !important;
-}
+/* Custom Cursor Styles - Disabled */
 
 .custom-cursor-container {
   position: fixed;
