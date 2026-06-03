@@ -190,7 +190,7 @@ const Dashboard = () => {
     setIsChatOpen(true);
   };
 
-  if (authLoading || (loading && rentals.length === 0 && myListings.length === 0)) {
+  if (authLoading) {
     return (
       <div className="page dashboard-page text-center" style={{ display: "grid", placeItems: "center", minHeight: "50vh" }}>
         <div className="shimmer-line title" style={{ width: "200px", margin: "0 auto" }}></div>
@@ -253,7 +253,13 @@ const Dashboard = () => {
       </header>
 
       {/* DASHBOARD RENTING (TENANT VIEW) */}
-      <AnimatePresence mode="wait">
+      {loading ? (
+        <div className="page text-center" style={{ display: "grid", placeItems: "center", minHeight: "35vh" }}>
+          <div className="shimmer-line title" style={{ width: "150px", margin: "1rem auto" }}></div>
+          <div className="shimmer-card" style={{ height: "150px", width: "100%" }}></div>
+        </div>
+      ) : (
+        <AnimatePresence mode="wait">
         {activeTab === "renting" ? (
           <motion.div
             key="renting-panel"
@@ -870,6 +876,7 @@ const Dashboard = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      )}
 
       {/* Floating Chat Drawer Integration (Phase 10) */}
       <ChatDrawer
