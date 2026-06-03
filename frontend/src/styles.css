@@ -1833,6 +1833,77 @@ a {
   }
 }
 
+/* Custom Cursor Styles */
+html.custom-cursor-active,
+html.custom-cursor-active * {
+  cursor: none !important;
+}
+
+.custom-cursor-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999999;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-cursor-container.visible {
+  opacity: 1;
+}
+
+.custom-cursor-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.custom-cursor-core {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  background-color: #ff5e00; /* Neon Orange */
+  box-shadow: 0 0 10px rgba(255, 94, 0, 0.8), 0 0 4px rgba(255, 94, 0, 0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  margin-left: -4px;
+  margin-top: -4px;
+  will-change: transform;
+}
+
+.custom-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 36px;
+  height: 36px;
+  border: 2px solid #ff007f; /* Neon Pink */
+  background-color: rgba(255, 0, 127, 0);
+  box-shadow: 0 0 12px rgba(255, 0, 127, 0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  margin-left: -18px;
+  margin-top: -18px;
+  will-change: transform;
+  transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.custom-cursor-container.hovered .custom-cursor-ring {
+  border-color: #00f0ff; /* Neon Cyan on Hover */
+  background-color: rgba(0, 240, 255, 0.08);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.5);
+}
+
+
 
 
 
