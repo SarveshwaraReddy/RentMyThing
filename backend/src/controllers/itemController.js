@@ -22,7 +22,14 @@ export const createItem = async (req, res, next) => {
       return res.status(400).json({ message: "Please provide all required text fields" });
     }
 
-    if (!latitude || !longitude) {
+    if (
+      latitude === undefined ||
+      latitude === null ||
+      latitude === "" ||
+      longitude === undefined ||
+      longitude === null ||
+      longitude === ""
+    ) {
       return res.status(400).json({ message: "Location coordinates are required" });
     }
 

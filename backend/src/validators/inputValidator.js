@@ -190,7 +190,11 @@ export const validateItem = (req, res, next) => {
       req.body.latitude = parseFloat(latStr);
     }
   } else if (!isUpdate) {
-    errors.latitude = "Latitude coordinate is required";
+    if (formattedAddress && String(formattedAddress).trim() !== "") {
+      req.body.latitude = 0;
+    } else {
+      errors.latitude = "Latitude coordinate is required";
+    }
   }
 
   if (longitude !== undefined && longitude !== null && longitude !== "") {
@@ -201,7 +205,11 @@ export const validateItem = (req, res, next) => {
       req.body.longitude = parseFloat(lngStr);
     }
   } else if (!isUpdate) {
-    errors.longitude = "Longitude coordinate is required";
+    if (formattedAddress && String(formattedAddress).trim() !== "") {
+      req.body.longitude = 0;
+    } else {
+      errors.longitude = "Longitude coordinate is required";
+    }
   }
 
   if (formattedAddress !== undefined && formattedAddress !== null) {
